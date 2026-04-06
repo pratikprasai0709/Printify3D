@@ -1,12 +1,9 @@
-
 import React from 'react';
-import type{ Page } from '../types';
+import { useNavigate } from 'react-router-dom';
 
-interface LandingPageProps {
-  onStart: (page: Page) => void;
-}
+const LandingPage: React.FC = () => {
+  const navigate = useNavigate();
 
-const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
   return (
     <div className="pt-32 pb-20 px-6">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-24">
@@ -26,13 +23,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4">
             <button 
-              onClick={() => onStart('selection')}
+              onClick={() => navigate('/selection')}
               className="px-8 py-4 bg-slate-900 text-white rounded-2xl text-lg font-bold hover:bg-slate-800 transition-all shadow-xl hover:-translate-y-1 active:scale-95 w-full sm:w-auto"
             >
               Start Designing
             </button>
             <button 
-              onClick={() => onStart('selection')}
+              onClick={() => navigate('/selection')}
               className="px-8 py-4 bg-white text-slate-700 border-2 border-slate-100 rounded-2xl text-lg font-bold hover:border-slate-300 transition-all w-full sm:w-auto"
             >
               View Bottles

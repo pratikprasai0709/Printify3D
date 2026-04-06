@@ -1,74 +1,62 @@
-
-import React, { useState } from 'react';
+import React from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import LandingPage from './pages/LandingPage';
 import SelectionPage from './pages/SelectionPage';
 import DesignEditor from './pages/DesignEditor';
 import PreviewPage from './pages/PreviewPage';
 import AdminDashboard from './pages/AdminDashboard';
-import type { Page, BottleModel, CustomizationState } from './types';
+import LoginPage from './features/login/login';
+import Register from './features/register/register';
 
+import ProtectedRoute from './components/ProtectedRoute';
 
 const App: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState<Page>('landing');
-  const [selectedModel, setSelectedModel] = useState<BottleModel | null>(null);
-  const [customizationState, setCustomizationState] = useState<CustomizationState | null>(null);
+  const location = useLocation();
 
-  const navigateTo = (page: Page) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleSelectModel = (model: BottleModel) => {
-    setSelectedModel(model);
-    navigateTo('editor');
-  };
-
-  const handlePreview = (state: CustomizationState) => {
-    setCustomizationState(state);
-    navigateTo('preview');
-  };
-
-  const handleConfirmOrder = () => {
-    alert('Thank you! Your custom order has been received.');
-    navigateTo('landing');
-  };
-
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'landing':
-        return <LandingPage onStart={navigateTo} />;
-      case 'selection':
-        return <SelectionPage onSelect={handleSelectModel} />;
-      case 'editor':
-        return selectedModel ? (
-          <DesignEditor 
-            selectedModel={selectedModel} 
-            onPreview={handlePreview} 
-            onNavigate={navigateTo}
-          />
-        ) : <SelectionPage onSelect={handleSelectModel} />;
-      case 'preview':
-        return selectedModel && customizationState ? (
-          <PreviewPage 
-            model={selectedModel} 
-            customization={customizationState} 
-            onBack={() => navigateTo('editor')}
-            onConfirm={handleConfirmOrder}
-          />
-        ) : <SelectionPage onSelect={handleSelectModel} />;
-      case 'admin':
-        return <AdminDashboard />;
-      default:
-        return <LandingPage onStart={navigateTo} />;
-    }
-  };
+  let currentPageContext = 'landing';
+  if (location.pathname.includes('/selection')) currentPageContext = 'selection';
+  else if (location.pathname.includes('/editor')) currentPageContext = 'editor';
+  else if (location.pathname.includes('/preview')) currentPageContext = 'preview';
+  else if (location.pathname.includes('/admin')) currentPageContext = 'admin';
+  else if (location.pathname.includes('/login')) currentPageContext = 'login';
+  else if (location.pathname.includes('/register')) currentPageContext = 'register';
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 selection:bg-blue-100">
-      <Navbar currentPage={currentPage} onNavigate={navigateTo} />
-      {renderPage()}
+      <Navbar currentPage={currentPageContext as any} />
       
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        
+        {/* User Routes */}
+        <Route path="/selection" element={
+          <ProtectedRoute allowedRoles={['user']}>
+            <SelectionPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/editor" element={
+          <ProtectedRoute allowedRoles={['user']}>
+            <DesignEditor />
+          </ProtectedRoute>
+        } />
+        <Route path="/preview" element={
+          <ProtectedRoute allowedRoles={['user']}>
+            <PreviewPage />
+          </ProtectedRoute>
+        } />
+
+        {/* Admin Routes */}
+        <Route path="/admin" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<Register />} />
+      </Routes>
+
       {/* Dynamic Background Elements */}
       <div className="fixed -z-10 top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-40">
         <div className="absolute top-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-blue-100 rounded-full blur-[120px]" />
@@ -77,7 +65,6 @@ const App: React.FC = () => {
 
       <footer className="mt-20 py-12 px-6 border-t border-slate-100 bg-white">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-evenly items-center gap-8">
-          
           <p className="text-sm text-slate-400 font-light">
             © 2025 Printify3D Systems. All rights reserved.
           </p>

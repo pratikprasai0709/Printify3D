@@ -1,19 +1,35 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { loginApi } from "../../shared/config/api";
 
-const LoginPage = () => {
+const LoginPage: React.FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (username === "admin" && password === "admin123") {
-      navigate("/dashboard");
-    } else {
-      alert("Invalid credentials");
-    }
+
+    loginApi({ username, password })
+      .then((res) => {
+        if (res.data.token) {
+          localStorage.setItem("token", res.data.token);
+          localStorage.setItem("currentUser", JSON.stringify(res.data.user));
+          alert("Login successful");
+          
+          if (res.data.user.role === 'admin') {
+            navigate("/admin");
+          } else {
+            navigate("/selection");
+          }
+        } else {
+          alert("Login failed: No token received");
+        }
+      })
+      .catch((err) => {
+        console.error("Login error:", err);
+        alert(err.response?.data?.message || "Invalid credentials");
+      });
   };
 
   return (
@@ -47,9 +63,13 @@ const LoginPage = () => {
         </button>
         <p className="mt-4 text-center">
           Don't have an account?{" "}
-          <Link className="text-blue-500" to="/register">
+          <button
+            type="button"
+            onClick={() => navigate('/register')}
+            className="text-blue-500 hover:underline"
+          >
             Register
-          </Link>
+          </button>
         </p>
       </form>
     </div>

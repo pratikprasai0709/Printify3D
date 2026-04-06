@@ -1,21 +1,16 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
 import type { AxiosError, AxiosResponse } from "axios";
+import { useNavigate } from "react-router-dom";
 import { registerApi } from "../../shared/config/api";
 
-
 function Register() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: "",
     password: "",
     confirmPassword: "",
+    phoneNumber: "",
   });
-
-const [errorMsg, setErrorMsg] = useState("");
-const [successMsg, setSuccessMsg] = useState("");
-
-
-  const navigate = useNavigate();
 
   const handleChanges = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -28,11 +23,13 @@ const [successMsg, setSuccessMsg] = useState("");
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-  setErrorMsg("");
-  setSuccessMsg("");
-
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match");
+      return;
+    }
+
+    if (formData.phoneNumber.length !== 10 || !/^\d+$/.test(formData.phoneNumber)) {
+      alert("Phone number must be exactly 10 digits");
       return;
     }
 
@@ -40,6 +37,7 @@ const [successMsg, setSuccessMsg] = useState("");
     const payload = {
       username: formData.username,
       password: formData.password,
+      phoneNumber: formData.phoneNumber,
     };
 
     registerApi(payload)
@@ -54,8 +52,6 @@ const [successMsg, setSuccessMsg] = useState("");
         // Common flows:
         // 1) Go to login page after successful registration:
         navigate("/login");
-        // OR 2) go home directly if token is returned:
-        // navigate("/");
       })
       .catch((err: AxiosError<any>) => {
 
@@ -69,7 +65,7 @@ const [successMsg, setSuccessMsg] = useState("");
   };
 
   return (
-    <div className="pt-24 min-h-screen flex items-center justify-center bg-gray-900">
+    <div className="pt-24 min-h-screen flex items-center justify-center bg-gray-100">
       <form className="bg-white p-6 rounded w-80" onSubmit={submit}>
         <h2 className="text-2xl font-bold mb-4 text-center">Register</h2>
 
@@ -79,6 +75,16 @@ const [successMsg, setSuccessMsg] = useState("");
           name="username"
           value={formData.username}
           placeholder="Username"
+          type="text"
+          required
+        />
+
+        <input
+          className="w-full mb-3 p-2 border rounded"
+          onChange={handleChanges}
+          name="phoneNumber"
+          value={formData.phoneNumber}
+          placeholder="Phone Number (10 digits)"
           type="text"
           required
         />
@@ -104,11 +110,22 @@ const [successMsg, setSuccessMsg] = useState("");
         />
 
         <button
-          className="w-full bg-black text-white py-2 rounded hover:bg-gray-800"
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-gray-800"
           type="submit"
         >
           Signup
         </button>
+
+        <p className="mt-4 text-center text-sm">
+          Already have an account?{" "}
+          <button
+            type="button"
+            onClick={() => navigate('/login')}
+            className="text-blue-500 hover:underline"
+          >
+            Login
+          </button>
+        </p>
       </form>
     </div>
   );

@@ -16,3 +16,13 @@ export function checkToken(req, res, next)
         res.status(401).json(e);
     }
 }
+
+export function checkRole(roles) {
+    return (req, res, next) => {
+        if (!req.user) return res.status(401).send('Unauthorized');
+        if (!roles.includes(req.user.role)) {
+            return res.status(403).send('Forbidden: Access denied');
+        }
+        next();
+    };
+}

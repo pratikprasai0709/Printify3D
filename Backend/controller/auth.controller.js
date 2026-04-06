@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 
 export async function register(req, res) {
   try {
-    const { username, password } = req.body;
+    const { username, password, phoneNumber } = req.body;
 
     // check if user exists
     const userExists = await User.findOne({ username });
@@ -20,6 +20,7 @@ export async function register(req, res) {
     const user = new User({
       username,
       password: hashedPassword,
+      phoneNumber
     });
 
     await user.save();
@@ -37,20 +38,20 @@ export async function register(req, res) {
     });
   }
 }
-  export async function login(req, res) {
-    try{
-        const {username, password} = req.body;
-        const user = await User.findOne({username});
-        if(!user) return res.status(401).send("user not found");
+export async function login(req, res) {
+  try {
+    const { username, password } = req.body;
+    const user = await User.findOne({ username });
+    if (!user) return res.status(401).send("user not found");
 
-        const isMatch = bcrypt.compare(password, user.password);
-        if(!isMatch) return res.status(401).send("Invalid password");
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(401).send("Invalid password");
 
-        const token = jwt.sign({id: user._id}, process.env.JWT_SECRET, {expiresIn: "1h"});
-        res.json({message: "Login Sucessfull", user, token});
-    }catch(e){
-        console.log(e);
-        
-        return res.status(500).send(e);
-    }
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    res.json({ message: "Login Sucessfull", user, token });
+  } catch (e) {
+    console.log(e);
+
+    return res.status(500).send(e);
   }
+}
