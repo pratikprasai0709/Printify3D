@@ -22,17 +22,17 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage }) => {
     <nav className="fixed top-0 left-0 right-0 z-50 px-4 md:px-6 py-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between glass rounded-2xl px-4 md:px-8 py-3 shadow-sm">
         <div
-          className="text-xl md:text-2xl font-bold tracking-tight cursor-pointer text-slate-800 shrink-0"
+          className="text-xl md:text-2xl font-bold tracking-tight cursor-pointer text-brand-primary shrink-0 transition-opacity hover:opacity-80"
           onClick={() => navigate('/')}
         >
-          Printify<span className="text-blue-500">3D</span>
+          Printify<span className="text-brand-accent">3D</span>
         </div>
 
-        <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-600">
+        <div className="hidden md:flex items-center space-x-8 text-sm font-bold text-brand-secondary">
           {(user?.role === 'user' || !isLoggedIn) && (
             <button
               onClick={() => navigate('/selection')}
-              className={`hover:text-blue-500 transition-colors ${currentPage === 'selection' ? 'text-blue-600' : ''}`}
+              className={`hover:text-brand-accent transition-colors uppercase tracking-widest text-[11px] ${currentPage === 'selection' ? 'text-brand-accent' : ''}`}
             >
               Explore
             </button>
@@ -41,7 +41,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage }) => {
           {user?.role === 'admin' && (
             <button
                onClick={() => navigate('/admin')}
-               className={`hover:text-blue-500 transition-colors ${currentPage === 'admin' ? 'text-blue-600' : ''}`}
+               className={`hover:text-brand-accent transition-colors uppercase tracking-widest text-[11px] ${currentPage === 'admin' ? 'text-brand-accent' : ''}`}
             >
               Dashboard
             </button>
@@ -49,12 +49,12 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage }) => {
         </div>
 
         <div className="flex items-center space-x-2 md:space-x-4 shrink-0">
-           {isLoggedIn ? (
-             <>
-               <span className="hidden sm:inline text-xs md:text-sm font-bold text-slate-500 mr-2">
-                 Hi, {user.username} 
-                 <span className="ml-1 px-1.5 py-0.5 bg-slate-100 rounded text-[9px] uppercase">{user.role}</span>
-               </span>
+            {isLoggedIn ? (
+              <>
+                <span className="hidden sm:inline text-xs md:text-sm font-bold text-brand-secondary mr-2">
+                  Hi, {user.username} 
+                  <span className="ml-1 px-1.5 py-0.5 bg-brand-bg border border-brand-border rounded text-[9px] uppercase text-brand-accent">{user.role}</span>
+                </span>
                <button
                  onClick={handleLogout}
                  className="px-3 md:px-5 py-2 text-xs md:text-sm font-semibold text-rose-500 hover:text-rose-600 transition-colors"
@@ -64,18 +64,18 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage }) => {
              </>
            ) : (
              <>
-               <button
-                 onClick={() => navigate('/login')}
-                 className="px-3 md:px-5 py-2 text-xs md:text-sm font-semibold text-slate-700 hover:text-slate-900 transition-colors"
-               >
-                 Login
-               </button>
-               <button
-                 onClick={() => navigate('/selection')}
-                 className="px-4 md:px-6 py-2 bg-blue-600 text-white rounded-full text-xs md:text-sm font-semibold hover:bg-blue-700 transition-all shadow-md active:scale-95"
-               >
-                 Design<span className="hidden sm:inline"> Now</span>
-               </button>
+                <button
+                  onClick={() => navigate('/login')}
+                  className="px-3 md:px-5 py-2 text-xs md:text-sm font-bold text-brand-primary hover:text-brand-accent transition-colors"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => navigate('/selection')}
+                  className="px-4 md:px-6 py-2 bg-brand-primary text-white rounded-full text-xs md:text-sm font-bold hover:bg-black transition-all shadow-md active:scale-95"
+                >
+                  Design<span className="hidden sm:inline"> Now</span>
+                </button>
              </>
            )}
         </div>

@@ -9,44 +9,21 @@ import CanvasEditor from "../components/CanvasEditor";
 const DesignEditor: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const selectedModel = location.state?.selectedModel as BottleModel;
-
-  const [customization, setCustomization] = useState<CustomizationState>({
-    color: '#ffdab9',
-    material: 'matte',
-    imageScale: 1,
-    imageRotation: 0,
-    imageX: 0,
-    imageY: 0,
-    capColor: '#333333',
-    text: '',
-    font: "'Inter', sans-serif",
-    textColor: '#000000',
-    fontSize: 40,
-    textScale: 1,
-    textRotation: 0,
-    textX: 0,
-    textY: 0,
+  const [selectedModel] = useState<BottleModel | null>(() => {
+    if (location.state?.selectedModel) {
+      sessionStorage.setItem('editor_model', JSON.stringify(location.state.selectedModel));
+      return location.state.selectedModel;
+    }
+    const saved = sessionStorage.getItem('editor_model');
+    return saved ? JSON.parse(saved) : null;
   });
 
-  useEffect(() => {
-    if (!selectedModel) {
-      navigate('/selection');
+  const [customization, setCustomization] = useState<CustomizationState>(() => {
+    const saved = sessionStorage.getItem('editor_customization');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { }
     }
-  }, [selectedModel, navigate]);
-
-  if (!selectedModel) return null;
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setCustomization(prev => ({ ...prev, labelUrl: url }));
-    }
-  };
-
-  const resetDesign = () => {
-    setCustomization({
+    return {
       color: '#ffdab9',
       material: 'matte',
       imageScale: 1,
@@ -62,11 +39,58 @@ const DesignEditor: React.FC = () => {
       textRotation: 0,
       textX: 0,
       textY: 0,
-    });
+    };
+  });
+
+  useEffect(() => {
+    sessionStorage.setItem('editor_customization', JSON.stringify(customization));
+  }, [customization]);
+
+  useEffect(() => {
+    if (!selectedModel) {
+      navigate('/selection');
+    }
+  }, [selectedModel, navigate]);
+
+  if (!selectedModel) return null;
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setCustomization(prev => ({ ...prev, labelUrl: event.target!.result as string }));
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const resetDesign = () => {
+    const defaultState: CustomizationState = {
+      color: '#ffdab9',
+      material: 'matte',
+      imageScale: 1,
+      imageRotation: 0,
+      imageX: 0,
+      imageY: 0,
+      capColor: '#333333',
+      text: '',
+      font: "'Inter', sans-serif",
+      textColor: '#000000',
+      fontSize: 40,
+      textScale: 1,
+      textRotation: 0,
+      textX: 0,
+      textY: 0,
+    };
+    setCustomization(defaultState);
+    sessionStorage.setItem('editor_customization', JSON.stringify(defaultState));
   };
 
   return (
-    <div className="md:fixed md:inset-0 pt-24 pb-8 px-4 md:px-6 flex flex-col md:flex-row gap-6 min-h-screen md:min-h-0">
+    <div className="md:fixed md:inset-0 pt-24 pb-8 px-4 md:px-6 flex flex-col md:flex-row gap-6 min-h-screen md:min-h-0 bg-brand-bg">
 
       {/* This canvas generates the texture used by Three.js */}
       <CanvasEditor
@@ -93,26 +117,26 @@ const DesignEditor: React.FC = () => {
       />
 
       {/* Left Sidebar - Tools */}
-      <aside className="w-full md:w-20 lg:w-24 bg-white rounded-[2rem] shadow-sm border border-slate-100 flex md:flex-col items-center justify-around md:justify-center gap-6 p-4 shrink-0">
+      <aside className="w-full md:w-20 lg:w-24 bg-brand-surface rounded-[2rem] shadow-sm border border-brand-border flex md:flex-col items-center justify-around md:justify-center gap-6 p-4 shrink-0">
         <label className="group flex flex-col items-center gap-2 cursor-pointer">
-          <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-600 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all">
+          <div className="w-12 h-12 rounded-2xl bg-brand-bg flex items-center justify-center text-brand-secondary group-hover:bg-brand-accent group-hover:text-white transition-all">
             <Icons.Upload />
           </div>
-          <span className="text-[10px] font-bold text-slate-400 group-hover:text-blue-600 uppercase tracking-tighter">Upload</span>
+          <span className="text-[10px] font-bold text-brand-secondary group-hover:text-brand-accent uppercase tracking-tighter">Upload</span>
           <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
         </label>
 
 
-        <div className="w-8 h-[1px] bg-slate-100 hidden md:block" />
+        <div className="w-8 h-[1px] bg-brand-border hidden md:block" />
 
         <button
           onClick={resetDesign}
           className="group flex flex-col items-center gap-2"
         >
-          <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-red-400 group-hover:bg-red-50 group-hover:text-red-600 transition-all">
+          <div className="w-12 h-12 rounded-2xl bg-brand-bg flex items-center justify-center text-red-400 group-hover:bg-red-500 group-hover:text-white transition-all">
             <Icons.Reset />
           </div>
-          <span className="text-[10px] font-bold text-slate-400 group-hover:text-red-600 uppercase tracking-tighter">Reset</span>
+          <span className="text-[10px] font-bold text-brand-secondary group-hover:text-red-600 uppercase tracking-tighter">Reset</span>
         </button>
       </aside>
 
@@ -131,13 +155,13 @@ const DesignEditor: React.FC = () => {
         <div className="absolute bottom-8 flex gap-4">
           <button
             onClick={() => navigate('/selection')}
-            className="px-6 py-3 bg-white text-slate-700 rounded-2xl font-bold shadow-sm hover:shadow-md transition-all active:scale-95 text-sm"
+            className="px-6 py-3 bg-brand-surface text-brand-secondary rounded-2xl font-bold shadow-sm hover:shadow-md transition-all active:scale-95 text-sm border border-brand-border"
           >
             Back
           </button>
           <button
             onClick={() => navigate('/preview', { state: { model: selectedModel, customization } })}
-            className="px-8 py-3 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95 text-sm"
+            className="px-8 py-3 bg-brand-primary text-white rounded-2xl font-bold shadow-lg shadow-brand-primary/20 hover:bg-black transition-all active:scale-95 text-sm"
           >
             Preview Design
           </button>
@@ -145,8 +169,8 @@ const DesignEditor: React.FC = () => {
       </main>
 
       {/* Right Sidebar - Properties */}
-      <aside className="w-full md:w-80 lg:w-96 bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6 md:p-8 flex flex-col gap-8 md:overflow-y-auto shrink-0 md:max-h-full">
-        <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+      <aside className="w-full md:w-80 lg:w-96 bg-brand-surface rounded-[2rem] shadow-sm border border-brand-border p-6 md:p-8 flex flex-col gap-8 md:overflow-y-auto shrink-0 md:max-h-full">
+        <h3 className="text-lg font-bold text-brand-primary flex items-center gap-2">
           <Icons.Settings />
           Customizer
         </h3>
@@ -169,13 +193,13 @@ const DesignEditor: React.FC = () => {
 
         {/* Material Selection */}
         <div className="space-y-4">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Finish</label>
+          <label className="text-xs font-bold text-brand-secondary uppercase tracking-wider">Finish</label>
           <div className="flex gap-2">
             {(['matte', 'glossy', 'metallic'] as const).map(m => (
               <button
                 key={m}
                 onClick={() => setCustomization(prev => ({ ...prev, material: m }))}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${customization.material === m ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-100 hover:border-slate-300'}`}
+                className={`flex-1 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${customization.material === m ? 'bg-brand-primary text-white border-brand-primary' : 'bg-brand-bg text-brand-secondary border-brand-border hover:border-brand-accent'}`}
               >
                 {m}
               </button>
@@ -190,8 +214,8 @@ const DesignEditor: React.FC = () => {
 
             <div className="space-y-4">
               <div className="flex justify-between">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Image Scale</label>
-                <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest">{Math.round(customization.imageScale * 100)}%</span>
+                <label className="text-xs font-bold text-brand-secondary uppercase tracking-wider">Image Scale</label>
+                <span className="text-[10px] font-bold text-brand-accent uppercase tracking-widest">{Math.round(customization.imageScale * 100)}%</span>
               </div>
               <input
                 type="range"
@@ -200,7 +224,7 @@ const DesignEditor: React.FC = () => {
                 step="0.01"
                 value={customization.imageScale}
                 onChange={(e) => setCustomization(p => ({ ...p, imageScale: parseFloat(e.target.value) }))}
-                className="w-full h-1 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                className="w-full h-1 bg-brand-bg rounded-lg appearance-none cursor-pointer accent-brand-accent"
               />
             </div>
 
@@ -260,13 +284,13 @@ const DesignEditor: React.FC = () => {
         <div className="space-y-6 pt-4 border-t border-slate-100">
           <h4 className="text-sm font-bold text-slate-700 uppercase tracking-tighter">Text Decoration</h4>
           <div className="space-y-4">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Message</label>
+            <label className="text-xs font-bold text-brand-secondary uppercase tracking-wider">Message</label>
             <input
               type="text"
               value={customization.text || ''}
               onChange={(e) => setCustomization(p => ({ ...p, text: e.target.value }))}
               placeholder="Enter your text..."
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+              className="w-full px-4 py-3 bg-brand-bg border border-brand-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent transition-all"
             />
           </div>
 

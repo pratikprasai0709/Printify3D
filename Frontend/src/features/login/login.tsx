@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginApi } from "../../shared/config/api";
+import toast from "react-hot-toast";
 
 const LoginPage: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -15,7 +16,7 @@ const LoginPage: React.FC = () => {
         if (res.data.token) {
           localStorage.setItem("token", res.data.token);
           localStorage.setItem("currentUser", JSON.stringify(res.data.user));
-          alert("Login successful");
+          toast.success("Login successful");
           
           if (res.data.user.role === 'admin') {
             navigate("/admin");
@@ -23,12 +24,12 @@ const LoginPage: React.FC = () => {
             navigate("/selection");
           }
         } else {
-          alert("Login failed: No token received");
+          toast.error("Login failed: No token received");
         }
       })
       .catch((err) => {
         console.error("Login error:", err);
-        alert(err.response?.data?.message || "Invalid credentials");
+        toast.error(err.response?.data?.message || "Invalid credentials");
       });
   };
 

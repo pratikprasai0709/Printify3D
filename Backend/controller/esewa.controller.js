@@ -8,12 +8,21 @@ export async function initiateEsewaPayment(req, res) {
     try {
         const { amount, productName, customerDetails, designImage, bottlePreviewImage } = req.body;
 
+        console.log("=== ST-10: Base64 Snapshot:");
+        if (designImage) {
+            console.log("DESIGN B64:", designImage.substring(0, 100) + "...");
+        }
+        if (bottlePreviewImage) {
+            console.log("PREVIEW B64:", bottlePreviewImage.substring(0, 100) + "...");
+        }
+
+
         if (!amount || !productName || !customerDetails) {
             return res.status(400).json({ message: "Amount, productName, and customerDetails are required" });
         }
 
         const transaction_uuid = `${Date.now()}`;
-        
+
         let designImagePath = null;
         if (designImage) {
             // Check if it's base64 encoded image
@@ -23,18 +32,18 @@ export async function initiateEsewaPayment(req, res) {
                 const extension = matches[1];
                 const fileName = `design_${transaction_uuid}.${extension === 'png' ? 'png' : 'jpg'}`;
                 const uploadDir = path.join(process.cwd(), 'uploads');
-                
+
                 // Create uploads directory if it doesn't exist
                 if (!fs.existsSync(uploadDir)) {
                     fs.mkdirSync(uploadDir, { recursive: true });
                 }
-                
+
                 const filePath = path.join(uploadDir, fileName);
                 fs.writeFileSync(filePath, buffer);
                 designImagePath = `/uploads/${fileName}`;
             }
         }
-        
+
         let bottlePreviewImagePath = null;
         if (bottlePreviewImage) {
             // Check if it's base64 encoded image
@@ -44,11 +53,11 @@ export async function initiateEsewaPayment(req, res) {
                 const extension = matches[1];
                 const fileName = `preview_${transaction_uuid}.${extension === 'png' ? 'png' : 'jpg'}`;
                 const uploadDir = path.join(process.cwd(), 'uploads');
-                
+
                 if (!fs.existsSync(uploadDir)) {
                     fs.mkdirSync(uploadDir, { recursive: true });
                 }
-                
+
                 const filePath = path.join(uploadDir, fileName);
                 fs.writeFileSync(filePath, buffer);
                 bottlePreviewImagePath = `/uploads/${fileName}`;

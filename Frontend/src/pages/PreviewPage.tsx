@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import ThreeScene from '../components/ThreeScene';
 import EsewaPayment from '../components/EsewaPayment';
@@ -60,7 +61,7 @@ const PreviewPage: React.FC = () => {
             }, 3000);
         } catch (error) {
             console.error("eSewa Verification Failed:", error);
-            alert("Payment verification failed. Please contact support.");
+            toast.error("Payment verification failed. Please contact support.");
             setIsVerifying(false);
         }
    };
@@ -96,7 +97,7 @@ const PreviewPage: React.FC = () => {
 
    const handlePaymentError = (error: any) => {
         console.error("Payment failed", error);
-        alert("Payment failed or was cancelled. Please try again.");
+        toast.error("Payment failed or was cancelled. Please try again.");
    };
 
    const getBottlePreview = () => {

@@ -46,7 +46,7 @@ const SelectionPage: React.FC = () => {
             <p className="text-slate-400 text-lg">No models available yet.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {models.map((model) => {
               const thumbUrl = model.thumbnail.startsWith('http')
                 ? model.thumbnail
@@ -64,23 +64,23 @@ const SelectionPage: React.FC = () => {
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     />
                   </div>
-                  <div className="p-8 space-y-4 flex-1 flex flex-col">
+                  <div className="p-6 space-y-3 flex-1 flex flex-col">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="text-xl font-bold text-slate-800">{model.name}</h3>
-                        <p className="text-slate-400 text-sm font-medium">Starting from Rs. {model.price}</p>
+                        <h3 className="text-lg font-bold text-slate-800">{model.name}</h3>
+                        <p className="text-slate-400 text-xs font-medium">Starting from Rs. {model.price}</p>
                       </div>
                     </div>
-                    <p className="text-slate-500 text-sm font-light leading-relaxed">
+                    <p className="text-slate-500 text-xs font-light leading-relaxed">
                       Crafted with premium materials for ultimate durability and style.
                     </p>
-                    <div className="pt-4 mt-auto">
+                    <div className="pt-3 mt-auto">
                       <button
                         onClick={() => navigate('/editor', { state: { selectedModel: model } })}
-                        className="w-full py-4 bg-slate-50 group-hover:bg-blue-600 group-hover:text-white rounded-2xl font-bold transition-all flex items-center justify-center gap-2"
+                        className="w-full py-3 bg-slate-50 group-hover:bg-blue-600 group-hover:text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 text-sm"
                       >
                         Customize
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
                       </button>
                     </div>
                   </div>

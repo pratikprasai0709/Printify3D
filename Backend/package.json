@@ -3,9 +3,20 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --testPathPatterns=tests/ --verbose",
+    "test:watch": "jest --testPathPatterns=tests/ --watch",
     "dev": "nodemon index",
     "start": "node index"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "transform": {
+      "^.+\\.m?js$": "babel-jest"
+    },
+    "extensionsToTreatAsEsm": [],
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ]
   },
   "author": "",
   "type": "module",
@@ -24,6 +35,11 @@
   "keywords": [],
   "description": "",
   "devDependencies": {
-    "@types/axios": "^0.9.36"
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.2",
+    "@jest/globals": "^30.3.0",
+    "@types/axios": "^0.9.36",
+    "babel-jest": "^30.3.0",
+    "jest": "^30.3.0"
   }
 }

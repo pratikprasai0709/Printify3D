@@ -10,6 +10,7 @@ import LoginPage from './features/login/login';
 import Register from './features/register/register';
 
 import ProtectedRoute from './components/ProtectedRoute';
+import { Toaster } from 'react-hot-toast';
 
 const App: React.FC = () => {
   const location = useLocation();
@@ -23,7 +24,8 @@ const App: React.FC = () => {
   else if (location.pathname.includes('/register')) currentPageContext = 'register';
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 selection:bg-blue-100">
+    <div className="min-h-screen bg-brand-bg text-brand-primary selection:bg-blue-100 font-sans">
+      <Toaster position="top-right" reverseOrder={false} />
       <Navbar currentPage={currentPageContext as any} />
       
       <Routes>
@@ -63,13 +65,15 @@ const App: React.FC = () => {
         <div className="absolute bottom-[-5%] left-[-5%] w-[30vw] h-[30vw] bg-teal-50 rounded-full blur-[100px]" />
       </div>
 
-      <footer className="mt-20 py-12 px-6 border-t border-slate-100 bg-white">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-evenly items-center gap-8">
-          <p className="text-sm text-slate-400 font-light">
-            © 2025 Printify3D Systems. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      {currentPageContext !== 'editor' && (
+        <footer className="mt-20 py-12 px-6 border-t border-brand-border bg-white">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-evenly items-center gap-8">
+            <p className="text-sm text-brand-secondary font-light">
+              © 2025 Printify3D Systems. All rights reserved.
+            </p>
+          </div>
+        </footer>
+      )}
     </div>
   );
 };

@@ -2,6 +2,7 @@ import { useState, type ChangeEvent, type FormEvent } from "react";
 import type { AxiosError, AxiosResponse } from "axios";
 import { useNavigate } from "react-router-dom";
 import { registerApi } from "../../shared/config/api";
+import toast from "react-hot-toast";
 
 function Register() {
   const navigate = useNavigate();
@@ -24,12 +25,12 @@ function Register() {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match");
+      toast.error("Passwords do not match");
       return;
     }
 
     if (formData.phoneNumber.length !== 10 || !/^\d+$/.test(formData.phoneNumber)) {
-      alert("Phone number must be exactly 10 digits");
+      toast.error("Phone number must be exactly 10 digits");
       return;
     }
 
@@ -47,7 +48,7 @@ function Register() {
         if (res.data?.userData)
           localStorage.setItem("currentUser", JSON.stringify(res.data.userData));
 
-        alert(res.data?.message || "Register successful");
+        toast.success(res.data?.message || "Register successful");
 
         // Common flows:
         // 1) Go to login page after successful registration:
@@ -60,7 +61,7 @@ function Register() {
         console.log("data:", err.response?.data);
         console.log("request:", err.request);
         console.log("message:", err.message);
-        alert(err.response?.data?.message || "Register failed");
+        toast.error(err.response?.data?.message || "Register failed");
       });
   };
 

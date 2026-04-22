@@ -70,12 +70,12 @@ export async function updateBottle(req, res) {
 
         // If new files were uploaded, update the paths and delete old files from system
         if (files && files.modelFile) {
-             if (modelPath && fs.existsSync("." + modelPath)) fs.unlinkSync("." + modelPath);
-             modelPath = `/uploads/models/${files.modelFile[0].filename}`;
+            if (modelPath && fs.existsSync("." + modelPath)) fs.unlinkSync("." + modelPath);
+            modelPath = `/uploads/models/${files.modelFile[0].filename}`;
         }
         if (files && files.thumbnailFile) {
-             if (thumbnailPath && fs.existsSync("." + thumbnailPath)) fs.unlinkSync("." + thumbnailPath);
-             thumbnailPath = `/uploads/thumbnails/${files.thumbnailFile[0].filename}`;
+            if (thumbnailPath && fs.existsSync("." + thumbnailPath)) fs.unlinkSync("." + thumbnailPath);
+            thumbnailPath = `/uploads/thumbnails/${files.thumbnailFile[0].filename}`;
         }
 
         bottle.name = name || bottle.name;
@@ -102,7 +102,7 @@ export async function updateBottle(req, res) {
 export async function deleteBottle(req, res) {
     try {
         const { id } = req.params;
-        
+
         const bottle = await BottleModel.findById(id);
         if (!bottle) {
             return res.status(404).json({ message: "Bottle not found" });
@@ -117,7 +117,7 @@ export async function deleteBottle(req, res) {
         }
 
         await bottle.deleteOne();
-        
+
         return res.status(200).json({ message: "Bottle deleted successfully" });
     } catch (e) {
         console.error("Delete error:", e);
