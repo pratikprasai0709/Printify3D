@@ -1,28 +1,43 @@
-import fs from "fs";
-import path from "path";
 import BottleModel from "../models/bottle.model.js";
+import { deleteBottleAsset, uploadBottleAsset } from "../config/cloudinary.js";
+
+async function cleanUpAssets(assets) {
+    await Promise.all(assets.map(async (asset) => {
+        try {
+            await deleteBottleAsset(asset.publicId, asset.resourceType);
+        } catch (error) {
+            console.error("Cloudinary cleanup failed:", error.message);
+        }
+    }));
+}
 
 export async function addBottle(req, res) {
+    const uploadedAssets = [];
     try {
         const { name, type, price } = req.body;
+        const modelFile = req.files?.modelFile?.[0];
+        const thumbnailFile = req.files?.thumbnailFile?.[0];
 
-        const files = req.files;
-        const modelPath = files && files.modelFile ? `/uploads/models/${files.modelFile[0].filename}` : null;
-        const thumbnailPath = files && files.thumbnailFile ? `/uploads/thumbnails/${files.thumbnailFile[0].filename}` : null;
-
-        if (!modelPath) {
+        if (!modelFile) {
             return res.status(400).json({ message: "GLB file is required" });
         }
-        if (!thumbnailPath) {
+        if (!thumbnailFile) {
             return res.status(400).json({ message: "Thumbnail image is required" });
         }
+
+        const modelAsset = await uploadBottleAsset(modelFile, "model");
+        uploadedAssets.push(modelAsset);
+        const thumbnailAsset = await uploadBottleAsset(thumbnailFile, "thumbnail");
+        uploadedAssets.push(thumbnailAsset);
 
         const newBottle = new BottleModel({
             name,
             type,
             price,
-            thumbnail: thumbnailPath,
-            modelPath
+            thumbnail: thumbnailAsset.url,
+            thumbnailPublicId: thumbnailAsset.publicId,
+            modelPath: modelAsset.url,
+            modelPublicId: modelAsset.publicId
         });
 
         await newBottle.save();
@@ -31,12 +46,15 @@ export async function addBottle(req, res) {
             message: "Bottle model added successfully",
             bottle: newBottle
         });
-
-    } catch (e) {
-        console.error(e);
-        return res.status(500).json({
-            message: "Server error",
-            error: e.message
+    } catch (error) {
+        await cleanUpAssets(uploadedAssets);
+        console.error("Add bottle error:", error);
+        const configurationError = error.message?.includes("Cloudinary configuration is missing");
+        return res.status(configurationError ? 503 : 500).json({
+            message: configurationError
+                ? "Cloudinary is not configured on the backend"
+                : "Server error while uploading the bottle",
+            error: error.message
         });
     }
 }
@@ -45,85 +63,91 @@ export async function getBottles(req, res) {
     try {
         const bottles = await BottleModel.find();
         return res.status(200).json(bottles);
-    } catch (e) {
-        console.error(e);
+    } catch (error) {
+        console.error("Get bottles error:", error);
         return res.status(500).json({
             message: "Server error",
-            error: e.message
+            error: error.message
         });
     }
 }
 
 export async function updateBottle(req, res) {
+    const uploadedAssets = [];
     try {
         const { id } = req.params;
         const { name, type, price } = req.body;
-
         const bottle = await BottleModel.findById(id);
         if (!bottle) {
             return res.status(404).json({ message: "Bottle not found" });
         }
 
-        const files = req.files;
-        let modelPath = bottle.modelPath;
-        let thumbnailPath = bottle.thumbnail;
+        const oldAssets = [];
+        const modelFile = req.files?.modelFile?.[0];
+        const thumbnailFile = req.files?.thumbnailFile?.[0];
 
-        // If new files were uploaded, update the paths and delete old files from system
-        if (files && files.modelFile) {
-            if (modelPath && fs.existsSync("." + modelPath)) fs.unlinkSync("." + modelPath);
-            modelPath = `/uploads/models/${files.modelFile[0].filename}`;
+        if (modelFile) {
+            const asset = await uploadBottleAsset(modelFile, "model");
+            uploadedAssets.push(asset);
+            if (bottle.modelPublicId) {
+                oldAssets.push({ publicId: bottle.modelPublicId, resourceType: "raw" });
+            }
+            bottle.modelPath = asset.url;
+            bottle.modelPublicId = asset.publicId;
         }
-        if (files && files.thumbnailFile) {
-            if (thumbnailPath && fs.existsSync("." + thumbnailPath)) fs.unlinkSync("." + thumbnailPath);
-            thumbnailPath = `/uploads/thumbnails/${files.thumbnailFile[0].filename}`;
+        if (thumbnailFile) {
+            const asset = await uploadBottleAsset(thumbnailFile, "thumbnail");
+            uploadedAssets.push(asset);
+            if (bottle.thumbnailPublicId) {
+                oldAssets.push({ publicId: bottle.thumbnailPublicId, resourceType: "image" });
+            }
+            bottle.thumbnail = asset.url;
+            bottle.thumbnailPublicId = asset.publicId;
         }
 
-        bottle.name = name || bottle.name;
-        bottle.type = type || bottle.type;
-        bottle.price = price || bottle.price;
-        bottle.modelPath = modelPath;
-        bottle.thumbnail = thumbnailPath;
+        if (name) bottle.name = name;
+        if (type) bottle.type = type;
+        if (price !== undefined && price !== "") bottle.price = Number(price);
 
         await bottle.save();
+        await cleanUpAssets(oldAssets);
 
         return res.status(200).json({
             message: "Bottle updated successfully",
             bottle
         });
-    } catch (e) {
-        console.error("Update error:", e);
-        return res.status(500).json({
-            message: "Server error during update",
-            error: e.message
+    } catch (error) {
+        await cleanUpAssets(uploadedAssets);
+        console.error("Update bottle error:", error);
+        const configurationError = error.message?.includes("Cloudinary configuration is missing");
+        return res.status(configurationError ? 503 : 500).json({
+            message: configurationError
+                ? "Cloudinary is not configured on the backend"
+                : "Server error during bottle update",
+            error: error.message
         });
     }
 }
 
 export async function deleteBottle(req, res) {
     try {
-        const { id } = req.params;
-
-        const bottle = await BottleModel.findById(id);
+        const bottle = await BottleModel.findById(req.params.id);
         if (!bottle) {
             return res.status(404).json({ message: "Bottle not found" });
         }
 
-        // Cleanup associated files
-        if (bottle.modelPath && fs.existsSync("." + bottle.modelPath)) {
-            fs.unlinkSync("." + bottle.modelPath);
-        }
-        if (bottle.thumbnail && fs.existsSync("." + bottle.thumbnail)) {
-            fs.unlinkSync("." + bottle.thumbnail);
-        }
-
         await bottle.deleteOne();
+        await cleanUpAssets([
+            { publicId: bottle.modelPublicId, resourceType: "raw" },
+            { publicId: bottle.thumbnailPublicId, resourceType: "image" }
+        ].filter((asset) => asset.publicId));
 
         return res.status(200).json({ message: "Bottle deleted successfully" });
-    } catch (e) {
-        console.error("Delete error:", e);
+    } catch (error) {
+        console.error("Delete bottle error:", error);
         return res.status(500).json({
-            message: "Server error during delete",
-            error: e.message
+            message: "Server error",
+            error: error.message
         });
     }
 }

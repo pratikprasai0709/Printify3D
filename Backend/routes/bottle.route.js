@@ -1,32 +1,14 @@
 import { Router } from "express";
 import multer from "multer";
 import path from "path";
-import fs from "fs";
 import { addBottle, getBottles, updateBottle, deleteBottle } from "../controller/bottle.controller.js";
 import { checkToken, checkRole } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
-// Configure Multer for storage
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        let dir = "uploads/models";
-        if (file.fieldname === "thumbnailFile") {
-            dir = "uploads/thumbnails";
-        }
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-        }
-        cb(null, dir);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-        cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname));
-    }
-});
-
 const upload = multer({
-    storage: storage,
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 50 * 1024 * 1024, files: 2 },
     fileFilter: (req, file, cb) => {
         const ext = path.extname(file.originalname).toLowerCase();
         if (file.fieldname === "modelFile") {

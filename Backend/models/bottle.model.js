@@ -21,6 +21,8 @@ const bottleSchema = new Schema({
         type: String,
         required: true
     },
+    thumbnailPublicId: String,
+    modelPublicId: String,
     createdAt: {
         type: Date,
         default: Date.now
