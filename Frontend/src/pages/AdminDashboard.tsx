@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
-import { addBottleApi, getBottlesApi, updateBottleApi, deleteBottleApi, getOrdersApi } from '../shared/config/api';
+import { addBottleApi, getBottlesApi, updateBottleApi, deleteBottleApi, getOrdersApi, getBackendAssetUrl } from '../shared/config/api';
 import {
   AreaChart,
   Area,
@@ -203,7 +203,7 @@ const AdminDashboard: React.FC = () => {
   })).slice(0, 5); // top 5
 
   return (
-    <div className="pt-32 pb-20 px-6 max-w-7xl mx-auto">
+    <div className="pt-10 pb-20 px-6 max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
         <div className="space-y-1">
           <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">Hey, Admin</h1>
@@ -373,7 +373,7 @@ const AdminDashboard: React.FC = () => {
                             <div className="flex gap-2 justify-center">
                               {order.designImage ? (
                                 <a
-                                  href={`http://127.0.0.1:5000${order.designImage}`}
+                                  href={getBackendAssetUrl(order.designImage)}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
@@ -391,7 +391,7 @@ const AdminDashboard: React.FC = () => {
                             <div className="flex gap-2 justify-center">
                               {order.bottlePreviewImage ? (
                                 <a
-                                  href={`http://127.0.0.1:5000${order.bottlePreviewImage}`}
+                                  href={getBackendAssetUrl(order.bottlePreviewImage)}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-teal-50 text-teal-600 hover:bg-teal-600 hover:text-white transition-all shadow-sm"
@@ -454,13 +454,15 @@ const AdminDashboard: React.FC = () => {
           {bottles.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
               {bottles.map((m, i) => {
-                const thumbUrl = m.thumbnail.startsWith('http') ? m.thumbnail : `http://127.0.0.1:5000${m.thumbnail}`;
+                const thumbUrl = getBackendAssetUrl(m.thumbnail);
                 return (
                   <div key={i} className="bg-white rounded-[2rem] p-5 shadow-sm border border-slate-100 flex flex-col group relative transition-all hover:shadow-xl hover:shadow-slate-200/40 hover:-translate-y-1">
                     <div className="aspect-[4/5] bg-slate-50 rounded-[1.5rem] mb-5 overflow-hidden relative">
                       <img
                         src={thumbUrl}
                         alt={m.name}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
                       />
                       <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-black text-slate-700 uppercase tracking-widest shadow-sm">

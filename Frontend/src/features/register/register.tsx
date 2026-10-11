@@ -66,7 +66,7 @@ function Register() {
   };
 
   return (
-    <div className="pt-24 min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-gray-100 pt-8 sm:min-h-[calc(100vh-5rem)]">
       <form className="bg-white p-6 rounded w-80" onSubmit={submit}>
         <h2 className="text-2xl font-bold mb-4 text-center">Register</h2>
 

@@ -1,16 +1,18 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import LandingPage from './pages/LandingPage';
-import SelectionPage from './pages/SelectionPage';
-import DesignEditor from './pages/DesignEditor';
-import PreviewPage from './pages/PreviewPage';
-import AdminDashboard from './pages/AdminDashboard';
-import LoginPage from './features/login/login';
-import Register from './features/register/register';
+import Preloader from './components/Preloader';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { Toaster } from 'react-hot-toast';
+
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const SelectionPage = lazy(() => import('./pages/SelectionPage'));
+const DesignEditor = lazy(() => import('./pages/DesignEditor'));
+const PreviewPage = lazy(() => import('./pages/PreviewPage'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const LoginPage = lazy(() => import('./features/login/login'));
+const Register = lazy(() => import('./features/register/register'));
 
 const App: React.FC = () => {
   const location = useLocation();
@@ -28,36 +30,38 @@ const App: React.FC = () => {
       <Toaster position="top-right" reverseOrder={false} />
       <Navbar currentPage={currentPageContext as any} />
       
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        
-        {/* User Routes */}
-        <Route path="/selection" element={
-          <ProtectedRoute allowedRoles={['user']}>
-            <SelectionPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/editor" element={
-          <ProtectedRoute allowedRoles={['user']}>
-            <DesignEditor />
-          </ProtectedRoute>
-        } />
-        <Route path="/preview" element={
-          <ProtectedRoute allowedRoles={['user']}>
-            <PreviewPage />
-          </ProtectedRoute>
-        } />
+      <Suspense fallback={<Preloader />}>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
 
-        {/* Admin Routes */}
-        <Route path="/admin" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <AdminDashboard />
-          </ProtectedRoute>
-        } />
+          {/* User Routes */}
+          <Route path="/selection" element={
+            <ProtectedRoute allowedRoles={['user']}>
+              <SelectionPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/editor" element={
+            <ProtectedRoute allowedRoles={['user']}>
+              <DesignEditor />
+            </ProtectedRoute>
+          } />
+          <Route path="/preview" element={
+            <ProtectedRoute allowedRoles={['user']}>
+              <PreviewPage />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<Register />} />
-      </Routes>
+          {/* Admin Routes */}
+          <Route path="/admin" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<Register />} />
+        </Routes>
+      </Suspense>
 
       {/* Dynamic Background Elements */}
       <div className="fixed -z-10 top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-40">

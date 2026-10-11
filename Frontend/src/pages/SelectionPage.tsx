@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getBottlesApi } from '../shared/config/api';
+import { getBottlesApi, getBackendAssetUrl } from '../shared/config/api';
 import type { BottleModel } from '../types';
+
+const preloadModel = (modelPath: string) => {
+  const url = getBackendAssetUrl(modelPath);
+  void import('@react-three/drei')
+    .then(({ useGLTF }) => useGLTF.preload(url))
+    .catch(() => undefined);
+};
 
 const SelectionPage: React.FC = () => {
   const [models, setModels] = useState<BottleModel[]>([]);
@@ -25,14 +32,14 @@ const SelectionPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="pt-32 pb-20 px-6 min-h-screen flex items-center justify-center">
+      <div className="pt-10 pb-20 px-6 min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="pt-32 pb-20 px-6 min-h-screen">
+    <div className="pt-10 pb-20 px-6 min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
@@ -48,9 +55,7 @@ const SelectionPage: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {models.map((model) => {
-              const thumbUrl = model.thumbnail.startsWith('http')
-                ? model.thumbnail
-                : `http://localhost:5000${model.thumbnail}`;
+              const thumbUrl = getBackendAssetUrl(model.thumbnail);
 
               return (
                 <div
@@ -61,6 +66,8 @@ const SelectionPage: React.FC = () => {
                     <img
                       src={thumbUrl}
                       alt={model.name}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     />
                   </div>
@@ -76,6 +83,9 @@ const SelectionPage: React.FC = () => {
                     </p>
                     <div className="pt-3 mt-auto">
                       <button
+                        onMouseEnter={() => preloadModel(model.modelPath)}
+                        onFocus={() => preloadModel(model.modelPath)}
+                        onTouchStart={() => preloadModel(model.modelPath)}
                         onClick={() => navigate('/editor', { state: { selectedModel: model } })}
                         className="w-full py-3 bg-slate-50 group-hover:bg-blue-600 group-hover:text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 text-sm"
                       >

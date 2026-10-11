@@ -1,8 +1,19 @@
 import axios from "axios";
 
+export const API_BASE_URL =
+    import.meta.env.VITE_API_URL ||
+    (import.meta.env.PROD
+        ? 'https://printify3d-backend.onrender.com/api'
+        : 'http://127.0.0.1:5000/api');
+export const API_ORIGIN = new URL(API_BASE_URL).origin;
+export const getBackendAssetUrl = (path: string) => {
+    if (/^(https?:|data:|blob:)/i.test(path)) return path;
+    return `${API_ORIGIN}${path.startsWith('/') ? path : `/${path}`}`;
+};
+
 // Create axios instance with base URL
 const api = axios.create({
-    baseURL: 'http://127.0.0.1:5000/api'
+    baseURL: API_BASE_URL
 });
 
 // Add a request interceptor to include the JWT token

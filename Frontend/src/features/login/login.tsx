@@ -34,7 +34,7 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-gray-100 py-6 sm:min-h-[calc(100vh-5rem)]">
       <form
         onSubmit={handleLogin}
         className="bg-white p-8 rounded shadow-md w-96"

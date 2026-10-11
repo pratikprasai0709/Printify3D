@@ -69,7 +69,7 @@ const PreviewPage: React.FC = () => {
    if (!model || !customization) {
         if (isVerifying || isPaymentSuccess) {
             return (
-                <div className="pt-24 min-h-screen bg-slate-50 flex items-center justify-center">
+                <div className="pt-8 min-h-screen bg-slate-50 flex items-center justify-center">
                     <div className="bg-white p-12 rounded-[3rem] shadow-xl text-center space-y-4">
                         {isPaymentSuccess ? (
                             <>
@@ -109,11 +109,11 @@ const PreviewPage: React.FC = () => {
    };
 
    return (
-      <div className="pt-24 min-h-screen bg-slate-50 flex flex-col">
+      <div className="pt-8 min-h-screen bg-slate-50 flex flex-col">
          <div className="flex-1 max-w-7xl mx-auto w-full px-6 py-12 flex flex-col lg:flex-row gap-12">
             {/* Left: Interactive 3D */}
             <div className="flex-1 glass rounded-[3rem] shadow-xl overflow-hidden min-h-[500px]">
-               <ThreeScene customization={customization} modelPath={model.modelPath} className="w-full h-full" />
+               <ThreeScene customization={customization} modelPath={model.modelPath} className="w-full h-full" capturePreview />
             </div>
 
             {/* Right: Summary & Checkout */}

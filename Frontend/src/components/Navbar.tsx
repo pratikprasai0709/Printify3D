@@ -19,16 +19,16 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage }) => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 px-4 md:px-6 py-4">
-      <div className="max-w-7xl mx-auto flex items-center justify-between glass rounded-2xl px-4 md:px-8 py-3 shadow-sm">
+    <nav className="sticky top-0 z-50 w-full px-2 py-2 sm:px-4 sm:py-3 md:px-6" aria-label="Main navigation">
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 glass rounded-2xl px-3 py-2 shadow-sm sm:px-4 sm:py-3 md:px-8">
         <div
-          className="text-xl md:text-2xl font-bold tracking-tight cursor-pointer text-brand-primary shrink-0 transition-opacity hover:opacity-80"
+          className="shrink-0 cursor-pointer text-lg font-bold tracking-tight text-brand-primary transition-opacity hover:opacity-80 sm:text-xl md:text-2xl"
           onClick={() => navigate('/')}
         >
           Printify<span className="text-brand-accent">3D</span>
         </div>
 
-        <div className="hidden md:flex items-center space-x-8 text-sm font-bold text-brand-secondary">
+        <div className="hidden flex-1 items-center justify-center space-x-8 text-sm font-bold text-brand-secondary md:flex">
           {(user?.role === 'user' || !isLoggedIn) && (
             <button
               onClick={() => navigate('/selection')}
@@ -48,16 +48,16 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage }) => {
           )}
         </div>
 
-        <div className="flex items-center space-x-2 md:space-x-4 shrink-0">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2 md:gap-4">
             {isLoggedIn ? (
               <>
-                <span className="hidden sm:inline text-xs md:text-sm font-bold text-brand-secondary mr-2">
-                  Hi, {user.username} 
-                  <span className="ml-1 px-1.5 py-0.5 bg-brand-bg border border-brand-border rounded text-[9px] uppercase text-brand-accent">{user.role}</span>
+                <span className="mr-1 hidden max-w-[180px] min-w-0 items-center whitespace-nowrap text-xs font-bold text-brand-secondary sm:flex md:mr-2 md:text-sm">
+                  <span className="truncate">Hi, {user?.username}</span>
+                  <span className="ml-1 shrink-0 rounded border border-brand-border bg-brand-bg px-1.5 py-0.5 text-[9px] uppercase text-brand-accent">{user?.role}</span>
                 </span>
                <button
                  onClick={handleLogout}
-                 className="px-3 md:px-5 py-2 text-xs md:text-sm font-semibold text-rose-500 hover:text-rose-600 transition-colors"
+                 className="whitespace-nowrap px-2 py-2 text-[11px] font-semibold text-rose-500 transition-colors hover:text-rose-600 sm:px-3 sm:text-xs md:px-5 md:text-sm"
                >
                  Logout
                </button>
@@ -66,13 +66,13 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage }) => {
              <>
                 <button
                   onClick={() => navigate('/login')}
-                  className="px-3 md:px-5 py-2 text-xs md:text-sm font-bold text-brand-primary hover:text-brand-accent transition-colors"
+                  className="whitespace-nowrap px-2 py-2 text-[11px] font-bold text-brand-primary transition-colors hover:text-brand-accent sm:px-3 sm:text-xs md:px-5 md:text-sm"
                 >
                   Login
                 </button>
                 <button
                   onClick={() => navigate('/selection')}
-                  className="px-4 md:px-6 py-2 bg-brand-primary text-white rounded-full text-xs md:text-sm font-bold hover:bg-black transition-all shadow-md active:scale-95"
+                  className="whitespace-nowrap rounded-full bg-brand-primary px-3 py-2 text-[11px] font-bold text-white shadow-md transition-all hover:bg-black active:scale-95 sm:px-4 sm:text-xs md:px-6 md:text-sm"
                 >
                   Design<span className="hidden sm:inline"> Now</span>
                 </button>

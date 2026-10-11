@@ -90,7 +90,7 @@ const DesignEditor: React.FC = () => {
   };
 
   return (
-    <div className="md:fixed md:inset-0 pt-24 pb-8 px-4 md:px-6 flex flex-col md:flex-row gap-6 min-h-screen md:min-h-0 bg-brand-bg">
+    <div className="md:fixed md:inset-0 pt-8 md:pt-24 pb-8 px-4 md:px-6 flex flex-col md:flex-row gap-6 min-h-screen md:min-h-0 bg-brand-bg">
 
       {/* This canvas generates the texture used by Three.js */}
       <CanvasEditor
@@ -142,7 +142,7 @@ const DesignEditor: React.FC = () => {
 
       {/* Center Viewport */}
       <main className="flex-1 glass rounded-[3rem] relative flex items-center justify-center overflow-hidden shadow-inner bg-slate-50/50 min-h-[400px] md:min-h-0 shrink-0 md:shrink">
-        <ThreeScene customization={customization} modelPath={selectedModel.modelPath} className="w-full h-full" />
+        <ThreeScene customization={customization} modelPath={selectedModel.modelPath} className="w-full h-full" enableEnvironment={false} />
 
         {/* Helper UI */}
         <div className="absolute top-8 left-8">

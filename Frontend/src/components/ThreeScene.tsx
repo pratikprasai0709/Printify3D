@@ -1,14 +1,28 @@
+import { Suspense } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
-import { OrbitControls, useGLTF, Environment } from "@react-three/drei";
+import { Html, OrbitControls, useGLTF, Environment, useProgress } from "@react-three/drei";
 import * as THREE from "three";
 import { useEffect, useRef, useMemo } from "react";
+import { getBackendAssetUrl } from "../shared/config/api";
 
 import type { GLTF } from 'three-stdlib'
 
 
 function Bottle({ customization, modelPath }: any) {
-  const fullModelUrl = modelPath.startsWith('http') ? modelPath : `http://localhost:5000${modelPath}`;
-  const { scene } = useGLTF(fullModelUrl) as GLTF;
+  const fullModelUrl = getBackendAssetUrl(modelPath);
+  const { scene: loadedScene } = useGLTF(fullModelUrl) as GLTF;
+
+  // Keep editor changes local to this view instead of mutating Drei's cached GLTF scene.
+  const scene = useMemo(() => {
+    const model = loadedScene.clone(true);
+    model.traverse((obj: any) => {
+      if (!obj.isMesh) return;
+      obj.material = Array.isArray(obj.material)
+        ? obj.material.map((material: THREE.Material) => material.clone())
+        : obj.material.clone();
+    });
+    return model;
+  }, [loadedScene]);
 
   // Dynamically identify which meshes should receive the printable custom texture
   const printableMeshes = useMemo(() => {
@@ -17,7 +31,6 @@ function Bottle({ customization, modelPath }: any) {
 
     scene.traverse((obj: any) => {
       if (obj.isMesh) {
-        console.log("Mesh:", obj.name);
         // If the 3D artist explicitly named the body/label:
         const n = (obj.name || "").toLowerCase();
         if (n.includes("body") || n.includes("bottle") || n.includes("label")) {
@@ -104,8 +117,6 @@ function Bottle({ customization, modelPath }: any) {
 
       const isPrintable = printableMeshes.includes(obj);
 
-      obj.material = obj.material?.clone?.() ?? obj.material;
-
       const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
       mats.forEach((mat: any) => {
         if (!mat) return;
@@ -143,16 +154,14 @@ function Bottle({ customization, modelPath }: any) {
       // near the canvas boundaries and the 3D model's UV map happens to extend beyond [0, 1].
       t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
 
-      // Fix mirroring: Many models have mirrored UVs. Flipping the texture 
-      // ensures text and logos read correctly.
-      t.repeat.x = -1;
-      t.offset.x = 1;
+      t.repeat.x = 1;
+      t.offset.x = 0;
 
       // Provide correct color space for newer ThreeJS versions
       t.colorSpace = THREE.SRGBColorSpace;
       t.needsUpdate = true;
     });
-    texture.flipY = false;
+    texture.flipY = true;
 
     if (lastTextureRef.current) lastTextureRef.current.dispose();
     lastTextureRef.current = texture;
@@ -163,7 +172,6 @@ function Bottle({ customization, modelPath }: any) {
         const isPrintable = printableMeshes.includes(obj);
 
         if (isPrintable) {
-          obj.material = obj.material?.clone?.() ?? obj.material;
           obj.material.map = texture;
 
           // The canvas texture already includes the bottle color as its background.
@@ -193,15 +201,47 @@ function Bottle({ customization, modelPath }: any) {
   );
 }
 
-export default function ThreeScene({ customization, modelPath, className }: any) {
+function ModelLoading() {
+  const { progress } = useProgress();
+  const percent = Math.min(100, Math.round(progress));
+
   return (
-    <Canvas gl={{ preserveDrawingBuffer: true }} camera={{ fov: 45, position: [0, 0, 3] }} className={className}>
+    <Html center>
+      <div role="status" className="w-64 rounded-2xl border border-white/80 bg-white/90 px-5 py-4 text-sm font-semibold text-slate-600 shadow-lg backdrop-blur-sm">
+        <div className="mb-3 flex items-center gap-3">
+          <span className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-blue-100 border-t-blue-600" aria-hidden="true" />
+          <span>Loading bottle model · {percent}%</span>
+        </div>
+        <div
+          role="progressbar"
+          aria-label="Bottle model download progress"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={percent}
+          className="h-1.5 overflow-hidden rounded-full bg-blue-100"
+        >
+          <div className="h-full rounded-full bg-blue-600 transition-[width] duration-200" style={{ width: `${percent}%` }} />
+        </div>
+      </div>
+    </Html>
+  );
+}
+
+export default function ThreeScene({ customization, modelPath, className, capturePreview = false, enableEnvironment = true }: any) {
+  return (
+    <Canvas gl={{ preserveDrawingBuffer: capturePreview }} camera={{ fov: 45, position: [0, 0, 3] }} className={className}>
       <color attach="background" args={["#fff"]} />
       <ambientLight intensity={0.7} />
       <directionalLight position={[5, 5, 5]} intensity={1.2} />
       <directionalLight position={[-5, 2, 2]} intensity={1.2} />
-      <Environment preset="studio" />
-      <Bottle customization={customization} modelPath={modelPath} />
+      <Suspense fallback={<ModelLoading />}>
+        <Bottle customization={customization} modelPath={modelPath} />
+      </Suspense>
+      {enableEnvironment && (
+        <Suspense fallback={null}>
+          <Environment preset="studio" />
+        </Suspense>
+      )}
     </Canvas>
   );
 }
