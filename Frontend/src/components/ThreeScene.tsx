@@ -7,6 +7,36 @@ import { getBackendAssetUrl } from "../shared/config/api";
 
 import type { GLTF } from 'three-stdlib'
 
+function mapPrintTextureAcrossBodyHeight(mesh: THREE.Mesh) {
+  // GLB bottle UVs can compress raised rings into a tiny texture strip. Give
+  // printable body meshes a consistent vertical projection while keeping the
+  // artist-authored U coordinate for the wraparound direction.
+  const geometry = mesh.geometry.clone();
+  const positions = geometry.getAttribute("position");
+  const originalUvs = geometry.getAttribute("uv");
+  if (!positions || !originalUvs) {
+    geometry.dispose();
+    return;
+  }
+
+  geometry.computeBoundingBox();
+  const minY = geometry.boundingBox?.min.y ?? 0;
+  const height = (geometry.boundingBox?.max.y ?? 1) - minY;
+  if (height <= 0) {
+    geometry.dispose();
+    return;
+  }
+
+  const mappedUvs = new Float32Array(originalUvs.count * 2);
+  for (let i = 0; i < originalUvs.count; i += 1) {
+    mappedUvs[i * 2] = originalUvs.getX(i);
+    mappedUvs[i * 2 + 1] = THREE.MathUtils.clamp((positions.getY(i) - minY) / height, 0, 1);
+  }
+
+  geometry.setAttribute("uv", new THREE.BufferAttribute(mappedUvs, 2));
+  mesh.geometry = geometry;
+}
+
 
 function Bottle({ customization, modelPath }: any) {
   const fullModelUrl = getBackendAssetUrl(modelPath);
@@ -42,7 +72,10 @@ function Bottle({ customization, modelPath }: any) {
       }
     });
 
-    if (namedMeshes.length > 0) return namedMeshes;
+    if (namedMeshes.length > 0) {
+      namedMeshes.forEach(mapPrintTextureAcrossBodyHeight);
+      return namedMeshes;
+    }
 
     // Fallback: If meshes have generic names (e.g. "Cylinder001"), the main body is almost always the largest mesh by surface area.
     let largestMesh = null;
@@ -65,7 +98,12 @@ function Bottle({ customization, modelPath }: any) {
       }
     });
 
-    return largestMesh ? [largestMesh] : [];
+    if (largestMesh) {
+      mapPrintTextureAcrossBodyHeight(largestMesh);
+      return [largestMesh];
+    }
+
+    return [];
   }, [scene]);
 
   const groupRef = useRef<THREE.Group>(null);
