@@ -124,9 +124,10 @@ function Bottle({ customization, modelPath }: any) {
       mats.forEach((mat: any) => {
         if (!mat) return;
 
-        // remove dark base color texture so chosen color shows
-        // ONLY if it's not a custom label texture
-        if (mat.map && !customization.labelTexture) {
+        // Keep the custom artwork map only on printable body/label meshes.
+        // Other parts (especially the cap) must lose their baked dark diffuse map
+        // so the selected bottle color is visible without applying the artwork.
+        if (mat.map && !(customization.labelTexture && isPrintable)) {
           mat.map = null;
         }
 
