@@ -35,11 +35,7 @@ const App: React.FC = () => {
           <Route path="/" element={<LandingPage />} />
 
           {/* User Routes */}
-          <Route path="/selection" element={
-            <ProtectedRoute allowedRoles={['user']}>
-              <SelectionPage />
-            </ProtectedRoute>
-          } />
+          <Route path="/selection" element={<SelectionPage />} />
           <Route path="/editor" element={
             <ProtectedRoute allowedRoles={['user']}>
               <DesignEditor />

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { loginApi } from "../../shared/config/api";
 import toast from "react-hot-toast";
 
@@ -7,6 +7,7 @@ const LoginPage: React.FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +22,17 @@ const LoginPage: React.FC = () => {
           if (res.data.user.role === 'admin') {
             navigate("/admin");
           } else {
-            navigate("/selection");
+            const from = location.state?.from;
+            const returnToEditor = from?.pathname === "/editor" || from?.pathname === "/preview";
+
+            if (returnToEditor) {
+              navigate(
+                { pathname: from.pathname, search: from.search, hash: from.hash },
+                { replace: true, state: from.state }
+              );
+            } else {
+              navigate("/selection");
+            }
           }
         } else {
           toast.error("Login failed: No token received");
