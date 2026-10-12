@@ -170,43 +170,6 @@ const DesignEditor: React.FC = () => {
 
       {/* Right Sidebar - Properties */}
       <aside className="w-full md:w-80 lg:w-96 bg-brand-surface rounded-[2rem] shadow-sm border border-brand-border p-6 md:p-8 flex flex-col gap-8 md:overflow-y-auto shrink-0 md:max-h-full">
-        <h3 className="text-lg font-bold text-brand-primary flex items-center gap-2">
-          <Icons.Settings />
-          Customizer
-        </h3>
-
-        {/* Color Selection */}
-        <div className="space-y-4">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Bottle Color</label>
-          <div className="grid grid-cols-4 gap-3">
-            {COLORS.map(c => (
-              <button
-                key={c.hex}
-                onClick={() => setCustomization(prev => ({ ...prev, color: c.hex }))}
-                className={`aspect-square rounded-xl transition-all p-1 ${customization.color === c.hex ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
-              >
-                <div className="w-full h-full rounded-lg shadow-inner" style={{ backgroundColor: c.hex }} />
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Material Selection */}
-        <div className="space-y-4">
-          <label className="text-xs font-bold text-brand-secondary uppercase tracking-wider">Finish</label>
-          <div className="flex gap-2">
-            {(['matte', 'glossy', 'metallic'] as const).map(m => (
-              <button
-                key={m}
-                onClick={() => setCustomization(prev => ({ ...prev, material: m }))}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${customization.material === m ? 'bg-brand-primary text-white border-brand-primary' : 'bg-brand-bg text-brand-secondary border-brand-border hover:border-brand-accent'}`}
-              >
-                {m}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Image Decoration */}
         {customization.labelUrl && (
           <div className="space-y-6 pt-4 border-t border-slate-100">
@@ -408,6 +371,43 @@ const DesignEditor: React.FC = () => {
               </div>
             </>
           )}
+        </div>
+
+        <h3 className="text-lg font-bold text-brand-primary flex items-center gap-2">
+          <Icons.Settings />
+          Customizer
+        </h3>
+
+        {/* Color Selection */}
+        <div className="space-y-4">
+          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Bottle Color</label>
+          <div className="grid grid-cols-4 gap-3">
+            {COLORS.map(c => (
+              <button
+                key={c.hex}
+                onClick={() => setCustomization(prev => ({ ...prev, color: c.hex }))}
+                className={`aspect-square rounded-xl transition-all p-1 ${customization.color === c.hex ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
+              >
+                <div className="w-full h-full rounded-lg shadow-inner" style={{ backgroundColor: c.hex }} />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Material Selection */}
+        <div className="space-y-4">
+          <label className="text-xs font-bold text-brand-secondary uppercase tracking-wider">Finish</label>
+          <div className="flex gap-2">
+            {(['matte', 'glossy', 'metallic'] as const).map(m => (
+              <button
+                key={m}
+                onClick={() => setCustomization(prev => ({ ...prev, material: m }))}
+                className={`flex-1 py-2 rounded-xl text-xs font-bold capitalize transition-all border ${customization.material === m ? 'bg-brand-primary text-white border-brand-primary' : 'bg-brand-bg text-brand-secondary border-brand-border hover:border-brand-accent'}`}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
         </div>
 
       </aside>
