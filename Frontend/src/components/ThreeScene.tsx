@@ -7,34 +7,41 @@ import { getBackendAssetUrl } from "../shared/config/api";
 
 import type { GLTF } from 'three-stdlib'
 
-function mapPrintTextureAcrossBodyHeight(mesh: THREE.Mesh) {
-  // GLB bottle UVs can compress raised rings into a tiny texture strip. Give
-  // printable body meshes a consistent vertical projection while keeping the
-  // artist-authored U coordinate for the wraparound direction.
-  const geometry = mesh.geometry.clone();
-  const positions = geometry.getAttribute("position");
-  const originalUvs = geometry.getAttribute("uv");
-  if (!positions || !originalUvs) {
-    geometry.dispose();
-    return;
-  }
+function mapPrintTextureAcrossBodyHeight(meshes: THREE.Mesh[]) {
+  // GLB bottle UVs can compress raised rings into a tiny texture strip. Map all
+  // printable body pieces against one shared world-space height so artwork
+  // stays aligned across models split into multiple meshes.
+  const entries = meshes.flatMap(mesh => {
+    const positions = mesh.geometry.getAttribute("position");
+    const originalUvs = mesh.geometry.getAttribute("uv");
+    return positions && originalUvs ? [{ mesh, positions, originalUvs }] : [];
+  });
+  if (entries.length === 0) return;
 
-  geometry.computeBoundingBox();
-  const minY = geometry.boundingBox?.min.y ?? 0;
-  const height = (geometry.boundingBox?.max.y ?? 1) - minY;
-  if (height <= 0) {
-    geometry.dispose();
-    return;
-  }
+  const worldPosition = new THREE.Vector3();
+  let minY = Infinity;
+  let maxY = -Infinity;
+  entries.forEach(({ mesh, positions }) => {
+    for (let i = 0; i < positions.count; i += 1) {
+      worldPosition.fromBufferAttribute(positions, i).applyMatrix4(mesh.matrixWorld);
+      minY = Math.min(minY, worldPosition.y);
+      maxY = Math.max(maxY, worldPosition.y);
+    }
+  });
+  const height = maxY - minY;
+  if (!Number.isFinite(height) || height <= 0) return;
 
-  const mappedUvs = new Float32Array(originalUvs.count * 2);
-  for (let i = 0; i < originalUvs.count; i += 1) {
-    mappedUvs[i * 2] = originalUvs.getX(i);
-    mappedUvs[i * 2 + 1] = THREE.MathUtils.clamp((positions.getY(i) - minY) / height, 0, 1);
-  }
-
-  geometry.setAttribute("uv", new THREE.BufferAttribute(mappedUvs, 2));
-  mesh.geometry = geometry;
+  entries.forEach(({ mesh, positions, originalUvs }) => {
+    const geometry = mesh.geometry.clone();
+    const mappedUvs = new Float32Array(originalUvs.count * 2);
+    for (let i = 0; i < originalUvs.count; i += 1) {
+      worldPosition.fromBufferAttribute(positions, i).applyMatrix4(mesh.matrixWorld);
+      mappedUvs[i * 2] = originalUvs.getX(i);
+      mappedUvs[i * 2 + 1] = THREE.MathUtils.clamp((worldPosition.y - minY) / height, 0, 1);
+    }
+    geometry.setAttribute("uv", new THREE.BufferAttribute(mappedUvs, 2));
+    mesh.geometry = geometry;
+  });
 }
 
 
@@ -58,6 +65,7 @@ function Bottle({ customization, modelPath }: any) {
   const printableMeshes = useMemo(() => {
     if (!scene) return [];
     const namedMeshes: any[] = [];
+    scene.updateMatrixWorld(true);
 
     scene.traverse((obj: any) => {
       if (obj.isMesh) {
@@ -66,14 +74,25 @@ function Bottle({ customization, modelPath }: any) {
         // never include lids, caps, tips, straws, or other hardware.
         const n = (obj.name || "").toLowerCase().replace(/[^a-z0-9]+/g, " ");
         const isBottleHardware = /\b(cap|lid|tip|straw|handle|spout|stopper|cover|top)\b/.test(n);
-        if (!isBottleHardware && /\b(body|label)\b/.test(n)) {
+        let parent = obj.parent;
+        let isInBodyGroup = false;
+        while (parent && parent !== scene) {
+          const parentName = (parent.name || "").toLowerCase().replace(/[^a-z0-9]+/g, " ");
+          if (/\b(base|body)\b/.test(parentName)) {
+            isInBodyGroup = true;
+            break;
+          }
+          parent = parent.parent;
+        }
+
+        if (!isBottleHardware && (/\b(body|label)\b/.test(n) || isInBodyGroup)) {
           namedMeshes.push(obj);
         }
       }
     });
 
     if (namedMeshes.length > 0) {
-      namedMeshes.forEach(mapPrintTextureAcrossBodyHeight);
+      mapPrintTextureAcrossBodyHeight(namedMeshes);
       return namedMeshes;
     }
 
@@ -99,7 +118,7 @@ function Bottle({ customization, modelPath }: any) {
     });
 
     if (largestMesh) {
-      mapPrintTextureAcrossBodyHeight(largestMesh);
+      mapPrintTextureAcrossBodyHeight([largestMesh]);
       return [largestMesh];
     }
 
@@ -213,17 +232,18 @@ function Bottle({ customization, modelPath }: any) {
         // Only apply texture to the specific mesh that represents the body
         const isPrintable = printableMeshes.includes(obj);
 
-        if (isPrintable) {
-          obj.material.map = texture;
+        if (!isPrintable) return;
+
+        const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+        mats.forEach((material: any) => {
+          if (!material) return;
+          material.map = texture;
 
           // The canvas texture already includes the bottle color as its background.
           // Set material color to white to display the texture exactly as composed.
-          if (obj.material.color) {
-            obj.material.color.set(0xffffff);
-          }
-
-          obj.material.needsUpdate = true;
-        }
+          if (material.color) material.color.set(0xffffff);
+          material.needsUpdate = true;
+        });
       }
     });
   }, [customization.labelTexture, scene, printableMeshes]);
