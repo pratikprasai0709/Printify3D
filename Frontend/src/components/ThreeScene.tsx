@@ -31,9 +31,12 @@ function Bottle({ customization, modelPath }: any) {
 
     scene.traverse((obj: any) => {
       if (obj.isMesh) {
-        // If the 3D artist explicitly named the body/label:
-        const n = (obj.name || "").toLowerCase();
-        if (n.includes("body") || n.includes("bottle") || n.includes("label")) {
+        // Imported material names often append "Bottle" to every part, including caps.
+        // Prefer meshes explicitly identified as the printable body or label, and
+        // never include lids, caps, tips, straws, or other hardware.
+        const n = (obj.name || "").toLowerCase().replace(/[^a-z0-9]+/g, " ");
+        const isBottleHardware = /\b(cap|lid|tip|straw|handle|spout|stopper|cover|top)\b/.test(n);
+        if (!isBottleHardware && /\b(body|label)\b/.test(n)) {
           namedMeshes.push(obj);
         }
       }
