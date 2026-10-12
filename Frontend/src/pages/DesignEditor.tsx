@@ -141,7 +141,7 @@ const DesignEditor: React.FC = () => {
       </aside>
 
       {/* Center Viewport */}
-      <main className="flex-1 glass rounded-[3rem] relative flex items-center justify-center overflow-hidden shadow-inner bg-slate-50/50 min-h-[400px] md:min-h-0 shrink-0 md:shrink">
+      <main className="w-full min-w-0 h-[58vh] min-h-[420px] max-h-[650px] md:h-auto md:max-h-none flex-1 glass rounded-[3rem] relative flex items-center justify-center overflow-hidden shadow-inner bg-slate-50/50 md:min-h-0 shrink-0 md:shrink">
         <ThreeScene customization={customization} modelPath={selectedModel.modelPath} className="w-full h-full" enableEnvironment={false} />
 
         {/* Helper UI */}
